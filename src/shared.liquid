@@ -34,7 +34,6 @@
   {% assign price_count = price_count | plus: 1 %}
 {% endfor %}
 
-{% assign price_avg = price_sum | divided_by: price_count %}
 {% assign price_range = price_max | minus: price_min %}
 {% assign range_third = price_range | times: 0.33 %}
 {% assign threshold_low = price_min | plus: range_third %}
