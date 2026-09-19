@@ -37,7 +37,7 @@ custom_fields:
   description: This plugin turns your <a href="https://tibber.com">Tibber</a> data into a clear at-a-glance TRMNL dashboard. Supports NL, DE, SWE and NOR. <br><br>Update April 2026 - New design implemented, updated API management.
   category: analytics
   email_address: trmnl@achtnegen.nl
-  github_url: https://github.com/Bastronautik/trmnl-tibber-dashboard
+  github_url: https://github.com/Baszert/trmnl-tibber-dashboard
 - keyname: api_key
   field_type: string
   name: API Key
