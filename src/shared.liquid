@@ -204,20 +204,22 @@
 {% endtemplate %}
   
 <style>
-  .bold { font-variation-settings: "wght" 700; }
-  .relative { position: relative; }
+  /* Scoped to .tibber-plugin so these don't leak into other plugins in a mashup.
+     .chartPosition sits outside the layout, so it keeps its own (unique) name. */
+  .tibber-plugin .bold { font-variation-settings: "wght" 700; }
+  .tibber-plugin.relative, .tibber-plugin .relative { position: relative; }
   .chartPosition { position: absolute; left: 0; }
-  .time-box { position: absolute; top: 15px; left: 15px;}
-  .top-icon {
+  .tibber-plugin .time-box { position: absolute; top: 15px; left: 15px;}
+  .tibber-plugin .top-icon {
     position: absolute;
     top: 15px;
     right: 15px;
   }
-  .bg-gradient {
+  .tibber-plugin.bg-gradient {
     background: linear-gradient(0deg,rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
   }
 
-    .bg-gradient--early {
+  .tibber-plugin.bg-gradient--early {
     background: linear-gradient(0deg,rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
   }
 </style>
