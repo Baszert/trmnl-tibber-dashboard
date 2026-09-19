@@ -1,0 +1,65 @@
+<div class="layout flex flex--col flex--between relative p--4 h--full">
+  <div class="w--full flex flex--col flex--left">
+
+    <div class="w--full grid grid--cols-2"> 
+      {% for stat in visible_stats %}
+      {% case stat %}
+      {% when "today_production" %}
+      {% render "dataPoint", 
+      title: title_today_production, 
+      value: today_production, 
+      icon: "hgi-solar-panel-03", 
+      unit: "kWh" %}
+
+      {% when "today_reward" %}
+      {% render "dataPoint", 
+      title: title_today_reward, 
+      value: today_reward, 
+      icon: "hgi-savings", 
+      money_prefix: money_prefix, 
+      money_suffix: money_suffix %}
+
+      {% when "today_consumption" %}
+      {% render "dataPoint", 
+      title: title_today_consumption, 
+      value: today_consumption, 
+      icon: "hgi-electric-plugs", 
+      unit: "kWh" %}
+
+      {% when "today_cost" %}
+      {% render "dataPoint", 
+      title: title_today_cost, 
+      value: today_cost, 
+      icon: "hgi-coins-euro", 
+      money_prefix: money_prefix, 
+      money_suffix: money_suffix %}
+
+      {% when "month_consumption" %}
+      {% render "dataPoint", 
+      title: title_month_consumption, 
+      value: month_consumption, 
+      icon: "hgi-energy", 
+      unit: "kWh" %}
+
+      {% when "month_cost" %}
+      {% render "dataPoint", 
+      title: title_month_cost, 
+      value: month_cost, 
+      icon: "hgi-invoice-03", 
+      money_prefix: money_prefix, 
+      money_suffix: money_suffix %}
+      {% endcase %}
+      {% endfor %}
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="title_bar">
+  {{ tibber_icon }}
+  <span class="title">Tibber &ndash; {{ location_name }}</span>
+  <span class="instance">{{ current_time }}</span>
+</div>
+

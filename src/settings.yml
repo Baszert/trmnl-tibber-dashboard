@@ -1,20 +1,43 @@
 ---
 strategy: polling
-no_screen_padding: 'no'
+no_screen_padding: 'yes'
 dark_mode: 'no'
 static_data: ''
 polling_verb: post
+framework_version: latest
+serverless_language: ''
 polling_url: https://api.tibber.com/v1-beta/gql
 polling_headers: authorization={{api_key}}&content-type=application/json
 polling_body: '{"query":"query EnergyDashboard { viewer { homes { id currentSubscription { priceInfo { current { total currency } today { startsAt total } tomorrow { startsAt total } } } todayConsumption: consumption(resolution: HOURLY, last: 48) { nodes { from to consumption cost } } todayProduction: production(resolution: HOURLY, last: 48) { nodes { from to production profit } } monthConsumption: consumption(resolution: DAILY, last: 62) { nodes { from to consumption cost } } } } }"}'
 id: 188591
+oauth_enabled: 'false'
+oauth_pkce_enabled: 'no'
+oauth_authorize_url: ''
+oauth_token_url: ''
+oauth_scopes: ''
+oauth_scope_separator: ''
+oauth_refresh_url: ''
+oauth_auth_params: ''
+oauth_token_headers: ''
+oauth_token_site: ''
+oauth_token_params: ''
+oauth_token_request_auth_method: ''
+oauth_body_format: ''
+oauth_token_response_metadata: ''
+oauth_authorization_method: ''
+oauth_refresh_params: ''
+oauth_token_field_name: ''
+oauth_expiry_field_name: ''
+oauth_expiry_strategy: ''
+oauth_fixed_expiry_ms: ''
 custom_fields:
 - name: About this plugin
   keyname: author_bio
   field_type: author_bio
-  description: This plugin turns your <a href="https://tibber.com">Tibber</a> data into a clear at-a-glance TRMNL dashboard. Supports NL, DE, SWE and NOR. <br><br>Update 27-12-2025 - Added lowest and highest price of the day.
+  description: This plugin turns your <a href="https://tibber.com">Tibber</a> data into a clear at-a-glance TRMNL dashboard. Supports NL, DE, SWE and NOR. <br><br>Update April 2026 - New design implemented, updated API management.
   category: analytics
   email_address: trmnl@achtnegen.nl
+  github_url: https://github.com/Bastronautik/trmnl-tibber-dashboard
 - keyname: api_key
   field_type: string
   name: API Key
@@ -41,8 +64,8 @@ custom_fields:
   default: Current Price
 - keyname: title_today_consumption
   field_type: string
-  name: 'Title: Consumption'
-  default: Consumption
+  name: 'Title: Today'
+  default: Today
 - keyname: title_today_cost
   field_type: string
   name: 'Title: Cost'
@@ -50,20 +73,21 @@ custom_fields:
 - keyname: title_today_production
   field_type: string
   name: 'Title: Production (Solar)'
-  default: Production (Solar)
+  default: Production
   optional: true
 - keyname: title_today_reward
   field_type: string
-  name: 'Title: Sold for (Solar)'
+  name: 'Title: Sold for'
   default: Sold for
   optional: true
 - keyname: title_month_consumption
   field_type: string
-  name: 'Title: Monthly Consumption'
-  default: Monthly Consumption
+  name: 'Title: Total'
+  default: Total
 - keyname: title_month_cost
   field_type: string
-  name: 'Title: Monthly Cost'
-  default: Monthly Cost
-name: Tibber Dashboard
+  name: 'Title: Total Cost'
+  default: Total Cost
+name: Tibber
+description: Dashboard (NL, DE, SE, NOR)
 refresh_interval: 15

@@ -7,12 +7,12 @@
 
 
 {% assign title_current_price      = cf.title_current_price      | default: "Current price" %}
-{% assign title_today_consumption  = cf.title_today_consumption  | default: "Consumption" %}
+{% assign title_today_consumption  = cf.title_today_consumption  | default: "Today" %}
 {% assign title_today_cost         = cf.title_today_cost         | default: "Cost" %}
-{% assign title_today_production   = cf.title_today_production   | default: "Sold (Solar)" %}
+{% assign title_today_production   = cf.title_today_production   | default: "Sold" %}
 {% assign title_today_reward       = cf.title_today_reward       | default: "Reward" %}
-{% assign title_month_consumption  = cf.title_month_consumption  | default: "Monthly Consumption" %}
-{% assign title_month_cost         = cf.title_month_cost         | default: "Monthly Cost" %}
+{% assign title_month_consumption  = cf.title_month_consumption  | default: "Total" %}
+{% assign title_month_cost         = cf.title_month_cost         | default: "Total Cost" %}
 
 {% assign firstHome  = data.viewer.homes[0] %}
 {% assign priceInfo  = firstHome.currentSubscription.priceInfo %}
@@ -88,7 +88,7 @@
 {% endif %}
 
 {% if solar_panels == "true" %}
-{% assign visible_stats = "today_consumption,today_cost,today_production,today_reward,month_consumption,month_cost" | split: "," %}
+{% assign visible_stats = "today_production,today_reward,today_consumption,today_cost,month_consumption,month_cost" | split: "," %}
 {% else %}
 {% assign visible_stats = "today_consumption,today_cost,month_consumption,month_cost" | split: "," %}
 {% endif %}
@@ -130,16 +130,98 @@
 {% assign last_update_formatted_short = hour | append: ":" | append: minute | append: " (" | append: tz | append: ")" %}
 
 {% capture money_prefix %}{% if currency == 'EUR' %}€{% endif %}{% endcapture %}
-{% capture money_suffix %}{% unless currency == 'EUR' %}<small class="value value--xxsmall">kr</small>{% endunless %}{% endcapture %}
+{% capture money_suffix %}{% unless currency == 'EUR' %}<small class="label--small">kr</small>{% endunless %}{% endcapture %}
 
+{% template formatMoney %}
+{% assign rounded = value | round: 2 %}
+{% assign parts = rounded | split: '.' %}
+{{ parts[0] }},{% if parts[1].size == 1 %}{{ parts[1] }}0{% elsif parts[1] %}{{ parts[1] }}{% else %}00{% endif %}
+{% endtemplate %}
+
+{% template dataPoint %}
+<div class="flex gap--medium">
+  <div class="value--small mb--4 lg:mb--10">
+    <i class="hgi hgi-stroke {{ icon }}"></i>
+  </div>
+  <div class="mt--1">
+    <div class="value--xxsmall lg:value--xsmall text--gray-30">
+      {{ title }}
+    </div>
+    <div class="value--xsmall lg:value mt--1 bold">
+      {% if money_prefix %}
+        {{ money_prefix }}{% render "formatMoney", value: value %}{{ money_suffix }}
+      {% else %}
+        {{ value | round: 2 }}
+      {% endif %}
+      {% if unit %}
+      <span class="label--small">{{ unit }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endtemplate %}
+
+{% template dataPointLarge %}
+<div class="flex gap--medium">
+  <div class="value--small">
+    <i class="hgi hgi-stroke {{ icon }}"></i>
+  </div>
+  <div class="mt--1">
+    <div class="value--xxsmall lg:value--xsmall text--gray-30">
+      {{ title }}
+    </div>
+    <div class="value--large lg:value--xlarge mt--1 bold text-stroke text-stroke--xlarge">
+      {% if money_prefix %}
+        {{ money_prefix }}{% render "formatMoney", value: value %}{{ money_suffix }}
+      {% else %}
+        {{ value | round: 2 }}
+      {% endif %}
+
+      <span class="value--small text-stroke text-stroke--xlarge">
+        {% case price_icon %}
+        {% when 'eq' %}
+        <i class="hgi hgi-stroke hgi-dashed-line-01"></i>
+        {% when 'high' %}
+        <i class="hgi hgi-stroke hgi-circle-arrow-up-right"></i>
+        {% when 'low' %}
+        <i class="hgi hgi-stroke hgi-circle-arrow-down-right"></i>
+        {% endcase %}
+      </span>
+    </div>
+    
+    <div class="flex gap--large mt--3 text-stroke text-stroke--xlarge">
+      <div class="value--xsmall flex">
+        <i class="hgi hgi-stroke hgi-arrow-down-02"></i>
+        {{ money_prefix }}{% render "formatMoney", value: price_min %}{{ money_suffix }}
+      </div>
+
+      <div class="value--xsmall flex">
+        <i class="hgi hgi-stroke hgi-arrow-up-02"></i>
+        {{ money_prefix }}{% render "formatMoney", value: price_max %}{{ money_suffix }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endtemplate %}
+  
 <style>
-  #app { font-family: 'Host Grotesk', sans-serif; }
-  .bold { font-weight: bold; }
+  .bold { font-variation-settings: "wght" 700; }
   .relative { position: relative; }
   .chartPosition { position: absolute; left: 0; }
-  .chartPosition--center { bottom: 25%; }
-  .time-box { position: absolute; top: 15px; left: 15px;
+  .time-box { position: absolute; top: 15px; left: 15px;}
+  .top-icon {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+  }
+  .bg-gradient {
+    background: linear-gradient(0deg,rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+    .bg-gradient--early {
+    background: linear-gradient(0deg,rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
   }
 </style>
 
+<link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
