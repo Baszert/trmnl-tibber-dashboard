@@ -4,7 +4,7 @@ no_screen_padding: 'yes'
 dark_mode: 'no'
 static_data: ''
 polling_verb: post
-framework_version: latest
+framework_version: 3.3.2
 serverless_language: ''
 polling_url: https://api.tibber.com/v1-beta/gql
 polling_headers: authorization={{api_key}}&content-type=application/json
