@@ -6,7 +6,7 @@ static_data: ''
 polling_verb: post
 framework_version: latest
 serverless_language: ''
-refresh_interval_floor:
+refresh_interval_floor: ''
 polling_url: https://api.tibber.com/v1-beta/gql
 polling_headers: authorization={{api_key}}&content-type=application/json
 polling_body: '{"query": "{ viewer { name accountType homes { id appNickname timeZone type size numberOfResidents primaryHeatingSource mainFuseSize\n  address { city country }\n  features { realTimeConsumptionEnabled }\n  meteringPointData { gridCompany priceAreaCode estimatedAnnualConsumption }\n  currentSubscription { status validFrom\n    priceInfo(resolution: QUARTER_HOURLY) {\n      current { total energy tax startsAt level currency }\n      today { total startsAt level }\n      tomorrow { total startsAt level } } }\n  hourCons: consumption(resolution: HOURLY, last: 48) { nodes { from to cost consumption unitPrice } }\n  dayCons: consumption(resolution: DAILY, last: 35) { nodes { from to cost consumption } }\n  hourProd: production(resolution: HOURLY, last: 48) { nodes { from to production profit } }\n  dayProd: production(resolution: DAILY, last: 35) { nodes { from to production profit } }\n} } }\n"}'
