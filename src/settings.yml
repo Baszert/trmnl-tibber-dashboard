@@ -4,37 +4,20 @@ no_screen_padding: 'yes'
 dark_mode: 'no'
 static_data: ''
 polling_verb: post
-framework_version: 3.3.2
+framework_version: latest
 serverless_language: ''
+refresh_interval_floor:
 polling_url: https://api.tibber.com/v1-beta/gql
 polling_headers: authorization={{api_key}}&content-type=application/json
-polling_body: '{"query":"query EnergyDashboard { viewer { homes { id currentSubscription { priceInfo { current { total currency } today { startsAt total } tomorrow { startsAt total } } } todayConsumption: consumption(resolution: HOURLY, last: 48) { nodes { from to consumption cost } } todayProduction: production(resolution: HOURLY, last: 48) { nodes { from to production profit } } monthConsumption: consumption(resolution: DAILY, last: 62) { nodes { from to consumption cost } } } } }"}'
+polling_body: '{"query": "{ viewer { name accountType homes { id appNickname timeZone type size numberOfResidents primaryHeatingSource mainFuseSize\n  address { city country }\n  features { realTimeConsumptionEnabled }\n  meteringPointData { gridCompany priceAreaCode estimatedAnnualConsumption }\n  currentSubscription { status validFrom\n    priceInfo(resolution: QUARTER_HOURLY) {\n      current { total energy tax startsAt level currency }\n      today { total startsAt level }\n      tomorrow { total startsAt level } } }\n  hourCons: consumption(resolution: HOURLY, last: 48) { nodes { from to cost consumption unitPrice } }\n  dayCons: consumption(resolution: DAILY, last: 35) { nodes { from to cost consumption } }\n  hourProd: production(resolution: HOURLY, last: 48) { nodes { from to production profit } }\n  dayProd: production(resolution: DAILY, last: 35) { nodes { from to production profit } }\n} } }\n"}'
 id: 188591
 oauth_enabled: 'false'
 oauth_pkce_enabled: 'no'
-oauth_authorize_url: ''
-oauth_token_url: ''
-oauth_scopes: ''
-oauth_scope_separator: ''
-oauth_refresh_url: ''
-oauth_auth_params: ''
-oauth_token_headers: ''
-oauth_token_site: ''
-oauth_token_params: ''
-oauth_token_request_auth_method: ''
-oauth_body_format: ''
-oauth_token_response_metadata: ''
-oauth_authorization_method: ''
-oauth_refresh_params: ''
-oauth_token_field_name: ''
-oauth_expiry_field_name: ''
-oauth_expiry_strategy: ''
-oauth_fixed_expiry_ms: ''
 custom_fields:
-- name: About this plugin
-  keyname: author_bio
+- keyname: author_bio
   field_type: author_bio
-  description: This plugin turns your <a href="https://tibber.com">Tibber</a> data into a clear at-a-glance TRMNL dashboard. Supports NL, DE, SWE and NOR. <br><br>Update April 2026 - New design implemented, updated API management.
+  name: About this plugin
+  description: Your Tibber energy price as one clear curve. See the price right now, the cheapest and most expensive hours ahead, tomorrow's range, and your usage, cost and solar at a glance. Works on TRMNL OG and X, landscape and portrait, in English, Dutch, German, Swedish and Norwegian.<br><br>Update October 2026 - completely new design with 15-minute prices. Solar panels are detected automatically.
   category: analytics
   email_address: trmnl@achtnegen.nl
   github_url: https://github.com/Baszert/trmnl-tibber-dashboard
@@ -42,52 +25,47 @@ custom_fields:
   field_type: string
   name: API Key
   description: This token can be generated at the <a href="https://developer.tibber.com/settings/access-token" class="underline" target="_blank">Tibber Developer Dashboard</a>.
-- keyname: solar_panels
+- keyname: home
+  field_type: number
+  name: Home number
+  description: Only needed if you have more than one Tibber home. 1 is your first home.
+  default: 1
+  min: 1
+  max: 9
+  optional: true
+- keyname: language
   field_type: select
-  name: Do you have Solar panels?
-  description: When you select yes, you get 2 extra cards with information about your solar panels (Production & Reward)
+  name: Language
+  description: Auto follows your TRMNL account language.
   options:
-  - Yes, I have them: true
-  - No, I don't have them: false
-  conditional_validation:
-  - when: false
-    hidden:
-    - title_today_production
-    - title_today_reward
-- keyname: location_name
-  field_type: string
-  name: Location name
-  default: New York
-- keyname: title_current_price
-  field_type: string
-  name: 'Title: Current price'
-  default: Current Price
-- keyname: title_today_consumption
-  field_type: string
-  name: 'Title: Today'
-  default: Today
-- keyname: title_today_cost
-  field_type: string
-  name: 'Title: Cost'
-  default: Cost
-- keyname: title_today_production
-  field_type: string
-  name: 'Title: Production (Solar)'
-  default: Production
+  - Auto
+  - English
+  - Nederlands
+  - Deutsch
+  - Svenska
+  - Norsk
+  default: Auto
   optional: true
-- keyname: title_today_reward
-  field_type: string
-  name: 'Title: Sold for'
-  default: Sold for
+- keyname: unit
+  field_type: select
+  name: Price unit
+  description: Whole currency units (0.201) or cents (20.1 ct).
+  options:
+  - Euro
+  - Cents
+  default: Euro
   optional: true
-- keyname: title_month_consumption
-  field_type: string
-  name: 'Title: Total'
-  default: Total
-- keyname: title_month_cost
-  field_type: string
-  name: 'Title: Total Cost'
-  default: Total Cost
+- keyname: window
+  field_type: select
+  name: Cheapest block
+  description: Length of the cheapest block to highlight (hours).
+  options:
+  - '1'
+  - '2'
+  - '3'
+  - '4'
+  default: '2'
+  optional: true
 name: Tibber
 description: Dashboard (NL, DE, SE, NOR)
 refresh_interval: 15

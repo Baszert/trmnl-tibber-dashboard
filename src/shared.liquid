@@ -1,228 +1,348 @@
-{% assign tibber_icon = '<svg class="w--4 text-stroke text-stroke--large image" viewBox="0 0 225 294" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M143.506 7.79398e-05C138.864 0.027631 134.369 2.05351 131.057 5.86583L4.16222 151.524C-0.212369 156.545 -1.22935 163.434 1.54322 169.533C4.2851 175.602 10.1773 179.399 16.8624 179.399H135.003C139.103 179.399 142.501 176.074 142.501 171.973C142.501 167.873 139.103 164.547 135.003 164.547H16.8624C15.7842 164.547 15.2791 163.905 15.0327 163.381C14.7866 162.857 14.6295 162.048 15.3376 161.246L142.232 15.6063C142.509 15.3289 143.29 14.3876 144.707 15.1581C146.093 15.9286 145.781 17.1025 145.658 17.4722L126.446 82.6952C125.284 86.6448 127.565 90.7971 131.523 91.9334C135.443 93.0603 139.538 90.8053 140.689 86.8927L159.919 21.5799C162.168 13.8166 158.909 5.98587 151.793 2.13498C149.136 0.679351 146.291 -0.0182907 143.506 7.79398e-05ZM89.8706 114.499C85.7702 114.499 82.3726 117.825 82.3726 121.926C82.3726 126.025 85.7702 129.352 89.8706 129.352H208.029C209.107 129.352 209.595 129.994 209.841 130.518C210.087 131.042 210.245 131.851 209.536 132.653L82.6416 278.292C82.3642 278.57 81.5833 279.51 80.1661 278.741C78.7798 277.97 79.0922 276.796 79.2154 276.427L98.4271 211.204C99.5899 207.253 97.3082 203.101 93.3507 201.965C89.4308 200.838 85.3364 203.092 84.1843 207.006L64.9546 272.319C62.7057 280.082 65.9642 287.913 73.0806 291.764C80.1662 295.646 88.5181 294.132 93.8171 288.033L220.711 142.375C225.086 137.354 226.103 130.464 223.33 124.365C220.588 118.296 214.715 114.499 208.029 114.499L89.8706 114.499Z" fill="currentColor"/></svg>' %}
+<script type="text/javascript">
 
-{% assign chart_id = "chart-" | append_random %}
-{% assign cf = trmnl.plugin_settings.custom_fields_values %}
-{% assign location_name = cf.location_name | default: "Home" %}
-{% assign solar_panels = cf.solar_panels | default: "true" %}
+// ================= SVG renderer =================
+var TXT = {
+  en: { avgp: 'avg %s', v_in: 'Cheapest in %s', v_in2: 'Cheaper in %s', now: 'NOW', lv: ['Very cheap', 'Cheap', 'Normal', 'Expensive', 'Very expensive'], cheapest: 'CHEAPEST', priciest: 'PRICIEST', hs: 'H', tomorrow: 'TOMORROW', tomorrow_wait: 'Tomorrow follows around 13:00', t_line: 'Tomorrow %l to %h', usage: 'USAGE', cost: 'COST', month: 'THIS MONTH', solar: 'SOLAR', paid: 'YOU PAY', v_cheap: 'Good moment', v_from: 'Cheaper at %s', v_from_t: 'Cheaper tomorrow %s', v_best: 'Cheapest at %s', v_best_t: 'Cheapest tomorrow %s', v_high: 'Better wait', v_ok: 'Normal price', tmrw: 'tomorrow' },
+  nl: { avgp: 'gem. %s', v_in: 'Goedkoopst over %s', v_in2: 'Goedkoper over %s', now: 'NU', lv: ['Zeer goedkoop', 'Goedkoop', 'Normaal', 'Duur', 'Zeer duur'], cheapest: 'GOEDKOOPST', priciest: 'DUURST', hs: 'U', tomorrow: 'MORGEN', tomorrow_wait: 'Morgen volgt rond 13:00', t_line: 'Morgen van %l tot %h', usage: 'VERBRUIK', cost: 'KOSTEN', month: 'DEZE MAAND', solar: 'ZON', paid: 'JIJ BETAALT', v_cheap: 'Goed moment', v_from: 'Goedkoper om %s', v_from_t: 'Goedkoper morgen %s', v_best: 'Goedkoopst om %s', v_best_t: 'Goedkoopst morgen %s', v_high: 'Even wachten', v_ok: 'Normale prijs', tmrw: 'morgen' },
+  de: { avgp: 'Ø %s', v_in: 'Am günstigsten in %s', v_in2: 'Günstiger in %s', now: 'JETZT', lv: ['Sehr günstig', 'Günstig', 'Normal', 'Teuer', 'Sehr teuer'], cheapest: 'GÜNSTIGST', priciest: 'TEUERST', hs: 'H', tomorrow: 'MORGEN', tomorrow_wait: 'Morgen folgt gegen 13:00', t_line: 'Morgen von %l bis %h', usage: 'VERBRAUCH', cost: 'KOSTEN', month: 'MONAT', solar: 'SOLAR', paid: 'DU ZAHLST', v_cheap: 'Guter Moment', v_from: 'Günstiger um %s', v_from_t: 'Günstiger morgen %s', v_best: 'Am günstigsten %s', v_best_t: 'Am günstigsten morgen %s', v_high: 'Lieber warten', v_ok: 'Normaler Preis', tmrw: 'morgen' },
+  sv: { avgp: 'snitt %s', v_in: 'Billigast om %s', v_in2: 'Billigare om %s', now: 'NU', lv: ['Mycket billigt', 'Billigt', 'Normalt', 'Dyrt', 'Mycket dyrt'], cheapest: 'BILLIGAST', priciest: 'DYRAST', hs: 'H', tomorrow: 'IMORGON', tomorrow_wait: 'Imorgon kommer runt 13:00', t_line: 'Imorgon %l till %h', usage: 'FÖRBRUKNING', cost: 'KOSTNAD', month: 'MÅNAD', solar: 'SOL', paid: 'DU BETALAR', v_cheap: 'Bra läge nu', v_from: 'Billigare %s', v_from_t: 'Billigare imorgon %s', v_best: 'Billigast %s', v_best_t: 'Billigast imorgon %s', v_high: 'Vänta helst', v_ok: 'Normalt pris', tmrw: 'imorgon' },
+  no: { avgp: 'snitt %s', v_in: 'Billigst om %s', v_in2: 'Billigere om %s', now: 'NÅ', lv: ['Svært billig', 'Billig', 'Normal', 'Dyr', 'Svært dyr'], cheapest: 'BILLIGST', priciest: 'DYREST', hs: 'T', tomorrow: 'I MORGEN', tomorrow_wait: 'I morgen kommer rundt 13:00', t_line: 'I morgen %l til %h', usage: 'FORBRUK', cost: 'KOSTNAD', month: 'MÅNED', solar: 'SOL', paid: 'DU BETALER', v_cheap: 'Bra tidspunkt', v_from: 'Billigere %s', v_from_t: 'Billigere i morgen %s', v_best: 'Billigst %s', v_best_t: 'Billigst i morgen %s', v_high: 'Vent helst', v_ok: 'Normal pris', tmrw: 'i morgen' }
+};
 
+function r1(n) { return Math.round(n * 10) / 10; }
+function esc(x) { return String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
-{% assign title_current_price      = cf.title_current_price      | default: "Current price" %}
-{% assign title_today_consumption  = cf.title_today_consumption  | default: "Today" %}
-{% assign title_today_cost         = cf.title_today_cost         | default: "Cost" %}
-{% assign title_today_production   = cf.title_today_production   | default: "Sold" %}
-{% assign title_today_reward       = cf.title_today_reward       | default: "Reward" %}
-{% assign title_month_consumption  = cf.title_month_consumption  | default: "Total" %}
-{% assign title_month_cost         = cf.title_month_cost         | default: "Total Cost" %}
-
-{% assign firstHome  = data.viewer.homes[0] %}
-{% assign priceInfo  = firstHome.currentSubscription.priceInfo %}
-{% assign priceInfoToday = priceInfo.today %}
-{% assign currency   = priceInfo.current.currency %}
-{% assign current_price = priceInfo.current.total %}
-
-{%- comment -%} --- PRICE ANALYSIS --- {%- endcomment -%}
-{% assign price_min = 999.0 %}
-{% assign price_max = 0.0 %}
-{% assign price_sum = 0.0 %}
-{% assign price_count = 0 %}
-
-{% for entry in priceInfoToday %}
-  {% assign p = entry.total %}
-  {% if p < price_min %}{% assign price_min = p %}{% endif %}
-  {% if p > price_max %}{% assign price_max = p %}{% endif %}
-  {% assign price_sum = price_sum | plus: p %}
-  {% assign price_count = price_count | plus: 1 %}
-{% endfor %}
-
-{% assign price_range = price_max | minus: price_min %}
-{% assign range_third = price_range | times: 0.33 %}
-{% assign threshold_low = price_min | plus: range_third %}
-{% assign threshold_high = price_max | minus: range_third %}
-
-{% assign price_icon = "eq" %}
-{% if current_price <= threshold_low %}
-  {% assign price_icon = "low" %}
-{% elsif current_price >= threshold_high %}
-  {% assign price_icon = "high" %}
-{% endif %}
-  
-{% assign now_ts = "now" | date: "%s" %}
-{% assign offset = trmnl.user.utc_offset %}
-{% assign local_ts = now_ts | plus: offset %}
-
-{% assign today_date    = local_ts | date: "%Y-%m-%d" %}
-{% assign current_month = local_ts | date: "%Y-%m" %}
-
-{% assign current_time = local_ts | date: "%H:%M" %}
-
-{% assign today_consumption  = 0 %}
-{% assign today_cost         = 0 %}
-{% assign today_production   = 0 %}
-{% assign today_reward       = 0 %}
-{% assign month_consumption  = 0 %}
-{% assign month_cost         = 0 %}
-{% assign last_update        = "" %}
-{% assign last_update_formatted = last_update | date: "%d-%m-%Y %H:%M (%z)" %}
-
-{% for node in firstHome.todayConsumption.nodes %}
-{% assign node_date = node.from | date: "%Y-%m-%d" %}
-{% if node_date == today_date %}
-{% assign today_consumption = today_consumption | plus: node.consumption %}
-{% assign today_cost        = today_cost        | plus: node.cost %}
-{% endif %}
-{% endfor %}
-
-{% for node in firstHome.todayProduction.nodes %}
-{% if node.production %}
-{% assign node_date = node.from | date: "%Y-%m-%d" %}
-{% if node_date == today_date %}
-{% assign today_production = today_production | plus: node.production %}
-{% assign today_reward     = today_reward     | plus: node.profit %}
-{% endif %}
-{% endif %}
-{% endfor %}
-
-{% if today_production == 0 %}
-{% assign solar_panels = "false" %}
-{% endif %}
-
-{% if solar_panels == "true" %}
-{% assign visible_stats = "today_production,today_reward,today_consumption,today_cost,month_consumption,month_cost" | split: "," %}
-{% else %}
-{% assign visible_stats = "today_consumption,today_cost,month_consumption,month_cost" | split: "," %}
-{% endif %}
-
-{% for node in firstHome.monthConsumption.nodes %}
-{% assign node_month = node.from | date: "%Y-%m" %}
-{% if node_month == current_month %}
-{% assign month_consumption = month_consumption | plus: node.consumption %}
-{% assign month_cost        = month_cost        | plus: node.cost %}
-{% endif %}
-{% endfor %}
-
-{% for node in firstHome.todayConsumption.nodes reversed %}
-{% if node.consumption %}
-{% assign last_update = node.to %}
-{% break %}
-{% endif %}
-{% endfor %}
-
-{% if last_update == "" %}
-{% for node in firstHome.todayProduction.nodes reversed %}
-{% if node.production %}
-{% assign last_update = node.to %}
-{% break %}
-{% endif %}
-{% endfor %}
-{% endif %}
-
-{% assign last_update_raw = last_update %}
-
-{% assign year   = last_update_raw | slice: 0, 4 %}
-{% assign month  = last_update_raw | slice: 5, 2 %}
-{% assign day    = last_update_raw | slice: 8, 2 %}
-{% assign hour   = last_update_raw | slice: 11, 2 %}
-{% assign minute = last_update_raw | slice: 14, 2 %}
-{% assign tz     = last_update_raw | slice: 23, 6 %}
-
-{% assign last_update_formatted = day | append: "-" | append: month | append: "-" | append: year | append: " " | append: hour | append: ":" | append: minute | append: " (" | append: tz | append: ")" %}
-{% assign last_update_formatted_short = hour | append: ":" | append: minute | append: " (" | append: tz | append: ")" %}
-
-{% capture money_prefix %}{% if currency == 'EUR' %}€{% endif %}{% endcapture %}
-{% capture money_suffix %}{% unless currency == 'EUR' %}<small class="label--small">kr</small>{% endunless %}{% endcapture %}
-
-{% template formatMoney %}
-{% assign rounded = value | round: 2 %}
-{% assign parts = rounded | split: '.' %}
-{{ parts[0] }},{% if parts[1].size == 1 %}{{ parts[1] }}0{% elsif parts[1] %}{{ parts[1] }}{% else %}00{% endif %}
-{% endtemplate %}
-
-{% template dataPoint %}
-<div class="flex gap--medium">
-  <div class="value--small mb--4 lg:mb--10">
-    <i class="hgi hgi-stroke {{ icon }}"></i>
-  </div>
-  <div class="mt--1">
-    <div class="value--xxsmall lg:value--xsmall text--gray-30">
-      {{ title }}
-    </div>
-    <div class="value--xsmall lg:value mt--1 bold">
-      {% if money_prefix %}
-        {{ money_prefix }}{% render "formatMoney", value: value %}{{ money_suffix }}
-      {% else %}
-        {{ value | round: 2 }}
-      {% endif %}
-      {% if unit %}
-      <span class="label--small">{{ unit }}</span>
-      {% endif %}
-    </div>
-  </div>
-</div>
-{% endtemplate %}
-
-{% template dataPointLarge %}
-<div class="flex gap--medium">
-  <div class="value--small">
-    <i class="hgi hgi-stroke {{ icon }}"></i>
-  </div>
-  <div class="mt--1">
-    <div class="value--xxsmall lg:value--xsmall text--gray-30">
-      {{ title }}
-    </div>
-    <div class="value--large lg:value--xlarge mt--1 bold text-stroke text-stroke--xlarge">
-      {% if money_prefix %}
-        {{ money_prefix }}{% render "formatMoney", value: value %}{{ money_suffix }}
-      {% else %}
-        {{ value | round: 2 }}
-      {% endif %}
-
-      <span class="value--small text-stroke text-stroke--xlarge">
-        {% case price_icon %}
-        {% when 'eq' %}
-        <i class="hgi hgi-stroke hgi-dashed-line-01"></i>
-        {% when 'high' %}
-        <i class="hgi hgi-stroke hgi-circle-arrow-up-right"></i>
-        {% when 'low' %}
-        <i class="hgi hgi-stroke hgi-circle-arrow-down-right"></i>
-        {% endcase %}
-      </span>
-    </div>
-    
-    <div class="flex gap--large mt--3 text-stroke text-stroke--xlarge">
-      <div class="value--xsmall flex">
-        <i class="hgi hgi-stroke hgi-arrow-down-02"></i>
-        {{ money_prefix }}{% render "formatMoney", value: price_min %}{{ money_suffix }}
-      </div>
-
-      <div class="value--xsmall flex">
-        <i class="hgi hgi-stroke hgi-arrow-up-02"></i>
-        {{ money_prefix }}{% render "formatMoney", value: price_max %}{{ money_suffix }}
-      </div>
-    </div>
-  </div>
-</div>
-{% endtemplate %}
-  
-<style>
-  /* Scoped to .tibber-plugin so these don't leak into other plugins in a mashup.
-     .chartPosition sits outside the layout, so it keeps its own (unique) name. */
-  .tibber-plugin .bold { font-variation-settings: "wght" 700; }
-  .tibber-plugin.relative, .tibber-plugin .relative { position: relative; }
-  .chartPosition { position: absolute; left: 0; }
-  .tibber-plugin .time-box { position: absolute; top: 15px; left: 15px;}
-  .tibber-plugin .top-icon {
-    position: absolute;
-    top: 15px;
-    right: 15px;
+function smoothPath(pts) {
+  if (pts.length < 2) return '';
+  var d = 'M' + r1(pts[0][0]) + ' ' + r1(pts[0][1]);
+  for (var i = 0; i < pts.length - 1; i++) {
+    var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    var t = 0.16;
+    d += ' C' + r1(p1[0] + (p2[0] - p0[0]) * t) + ' ' + r1(p1[1] + (p2[1] - p0[1]) * t) + ' ' +
+      r1(p2[0] - (p3[0] - p1[0]) * t) + ' ' + r1(p2[1] - (p3[1] - p1[1]) * t) + ' ' + r1(p2[0]) + ' ' + r1(p2[1]);
   }
-  .tibber-plugin.bg-gradient {
-    background: linear-gradient(0deg,rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+  return d;
+}
+
+function wrapText(str, maxChars) {
+  var words = String(str).split(' '), lines = [], cur = '';
+  words.forEach(function (w) {
+    if ((cur + ' ' + w).trim().length > maxChars && cur) { lines.push(cur); cur = w; } else cur = (cur + ' ' + w).trim();
+  });
+  if (cur) lines.push(cur);
+  return lines;
+}
+
+// layout table: every number is in px of the final screen (s = 1 on OG, 1.3 on X)
+function layoutFor(mode, W, H, s) {
+  var Wu = W / s, Hu = H / s;
+  var m = (Wu < 330 ? 20 : 28) * s;
+  var XS1 = W * 0.45, XS2 = W * 0.725;
+  var L;
+  if (mode === 'full') {
+    L = { span: 120, cx0: 0, cy0: 210 * s, cyb: H - 148 * s, padBot: 44 * s, bars: 1, axis: 1, balloons: 1, time: 1, line: 1, hy: 34 * s,
+      lblY: 68 * s, prY: 126 * s, big: 58 * s, verdict: 'inline', vAvail: XS1 - 20 * s,
+      cards: [{ x: XS1, inner: W * 0.275 - 26 * s, kind: 'best' }, { x: XS2, inner: W * 0.275 - 26 * s, kind: 'worst' }], cardsY: 68 * s,
+      tomorrow: { x: XS1, y: 'pill', wrap: 0 },
+      stats: [{ x: m, k: 'usage' }, { x: m + (XS1 - m) / 2, k: 'cost' }, { x: XS1, k: 'month' }, { x: XS2, k: 'solar' }], statsY: [H - 62 * s] };
+  } else if (mode === 'half_h') {
+    L = { span: 96, cx0: W * 0.38, cx1: W * 0.73, cy0: H * 0.24, cyb: H * 0.66, padBot: 0, bars: 1, axis: 1, balloons: 0, time: 1, line: 1, hy: 40 * s,
+      noNow: 1, lblY: H * 0.30, prY: H * 0.52, big: 60 * s, verdict: 'below',
+      cards: [{ x: W * 0.77, inner: W * 0.23 - m, kind: 'best' }, { x: W * 0.77, inner: W * 0.23 - m, kind: 'worst', dy: H * 0.33 }], cardsY: H * 0.30 };
+  } else if (mode === 'half_v') {
+    L = { span: 72, cx0: 0, cy0: H * 0.46, cyb: H * 0.71, padBot: 0, bars: 1, axis: 1, balloons: 0, time: 1, line: 1, hy: 40 * s,
+      noNow: 1, lblY: H * 0.145, prY: H * 0.245, big: 74 * s, verdict: 'below', hair: H * 0.84,
+      stats: [{ x: m, k: 'cheap' }, { x: m + (W - 2 * m) / 2, k: 'usage' }], statsY: [H * 0.90] };
+  } else if (mode === 'quad') {
+    L = { span: 48, cx0: 0, cy0: H * 0.77, cyb: H * 0.97, padBot: 0, bars: 0, axis: 0, balloons: 0, time: 1, line: 0, hy: 34 * s,
+      noNow: 1, lblY: H * 0.30, prY: H * 0.47, big: 62 * s, verdict: 'inline', vAvail: W - m };
+  } else if (mode === 'p_full') {
+    var colW = (W - 2 * m) / 2;
+    L = { span: 120, cx0: 0, cy0: 395 * s, cyb: H - 200 * s, padBot: 44 * s, bars: 1, axis: 1, balloons: 1, time: 1, line: 1, hy: 36 * s,
+      lblY: 84 * s, prY: 150 * s, big: 64 * s, verdict: 'inline', vAvail: W - m,
+      cards: [{ x: m, inner: colW - 22 * s, kind: 'best' }, { x: m + colW, inner: colW - 22 * s, kind: 'worst' }], cardsY: 246 * s,
+      tomorrow: { x: m, y: 350 * s, wrap: 0 },
+      stats: [{ x: m, k: 'usage', row: 0 }, { x: m + colW, k: 'cost', row: 0 }, { x: m, k: 'month', row: 1 }, { x: m + colW, k: 'solar', row: 1 }], statsY: [H - 132 * s, H - 72 * s] };
+  } else if (mode === 'p_mid') {
+    L = { span: 96, cx0: 0, cy0: 225 * s, cyb: H - 70 * s, padBot: 0, bars: 1, axis: 1, balloons: 0, time: 1, line: 1, hy: 36 * s,
+      noNow: 1, lblY: 82 * s, prY: 124 * s, big: 56 * s, verdict: 'inline', vAvail: W - m };
+  } else if (mode === 'p_tall') {
+    L = { span: 72, cx0: 0, cy0: 500 * s, cyb: H - 182 * s, padBot: 44 * s, bars: 1, axis: 1, balloons: 1, time: 1, line: 1, hy: 36 * s,
+      noNow: 1, lblY: 56 * s, prY: 0, big: 0, verdict: 'below', vAvail: W - 2 * m, narrow: 1,
+      cards: [{ x: m, inner: W - 2 * m, kind: 'best' }, { x: m, inner: W - 2 * m, kind: 'worst', dy: 82 * s }], cardsY: 'auto',
+      tomorrow: { x: m, y: 'auto', wrap: 24 },
+      stats: [{ x: m, k: 'usage', row: 0 }, { x: m, k: 'cost', row: 1 }], statsY: [H - 118 * s, H - 58 * s] };
+  } else { // p_quad
+    L = { span: 48, cx0: 0, cy0: 250 * s, cyb: H - 14 * s, padBot: 0, bars: 0, axis: 0, balloons: 0, time: 1, line: 0, hy: 34 * s,
+      noNow: 1, lblY: 52 * s, prY: 0, big: 0, verdict: 'below', vAvail: W - 2 * m, narrow: 1 };
+  }
+  L.m = m;
+  return L;
+}
+
+function drawScreen(mode, W, H, s, uid, out, all, curIdx, todayCount, T, bit1) {
+  var P = out.price, use = out.use, sol = out.solar, tm = out.tomorrow;
+  var euro = out.unit_label === out.sym;
+  var L = layoutFor(mode, W, H, s);
+  var m = L.m;
+  var g = [];
+  var INK = '#000', MUTE = bit1 ? '#333' : '#666';
+  function txt(x, y, size, str, o) {
+    o = o || {};
+    g.push('<text x="' + r1(x) + '" y="' + r1(y) + '" font-size="' + r1(size) + '" font-weight="' + (o.w || 500) + '"' +
+      (o.anchor ? ' text-anchor="' + o.anchor + '"' : '') + ' fill="' + (o.fill || INK) + '"' + (o.ls ? ' letter-spacing="' + o.ls + '"' : '') + '>' + str + '</text>');
+  }
+  function cap(x, y, str, o) { o = o || {}; o.fill = o.fill || MUTE; o.w = 600; o.ls = r1(0.9 * s); txt(x, y, 12 * s, esc(str), o); }
+  function money(v) { return out.sym === '€' ? '€' + v : v + ' kr'; }
+  function pf(v) { return euro ? out.sym + v : v + ' ' + out.unit_label; }
+
+  // ---- slot window ----
+  var span = L.span, len = all.length, a, b, i;
+  if (len <= span) { a = 0; b = len; }
+  else { a = Math.max(0, Math.min(curIdx - Math.round(span * 0.12), len - span)); b = a + span; }
+  var sm = all.map(function (p) { return p.total; });
+  var vmin = 1e9, vmax = -1e9, e0 = Math.min(Math.max(a, curIdx), b - 1), iMin = e0, iMax = e0;
+  for (i = a; i < b; i++) {
+    vmin = Math.min(vmin, sm[i]); vmax = Math.max(vmax, sm[i]);
+    if (i < e0) continue;
+    if (all[i].total < all[iMin].total) iMin = i;
+    if (all[i].total > all[iMax].total) iMax = i;
+  }
+  if (vmax - vmin < 0.02) vmax = vmin + 0.02;
+
+  // ---- hero text metrics (needed before layout of the narrow modes) ----
+  var priceStr = P.now;
+  var em = 0; for (i = 0; i < priceStr.length; i++) em += (priceStr[i] === '.' || priceStr[i] === ',') ? 0.32 : 0.63;
+  em += euro ? 0.28 : 0;
+  var big = L.big;
+  if (L.narrow) big = Math.min(74 * s, (W - 2 * m - 46 * s) / em);
+  var lblY = L.lblY, prY = L.prY || (lblY + big * 0.92);
+  var pillH = 26 * s, lvName = T.lv[P.level_idx], pillW = (lvName.length * 8.4 + 26) * s, pillY = prY + 16 * s;
+  var verdictY = L.verdict === 'inline' ? pillY + pillH * 0.69 : pillY + pillH + 22 * s;
+  var heroBottom = L.verdict === 'inline' ? pillY + pillH : verdictY + 6 * s;
+
+  // auto layout for the narrow tall mode
+  var cardsY = L.cardsY, tomY = L.tomorrow && L.tomorrow.y;
+  if (cardsY === 'auto') cardsY = heroBottom + 44 * s;
+  var tmLines = [];
+  if (L.tomorrow) {
+    var tl = (tm && tm.available) ? T.t_line.replace('%h', pf(tm.max)).replace('%l', pf(tm.min)) : T.tomorrow_wait;
+    tmLines = L.tomorrow.wrap ? wrapText(tl, Math.max(L.tomorrow.wrap, Math.floor((W - 2 * m) / (6.9 * s)))) : [tl];
+    if (tomY === 'pill') tomY = pillY + pillH * 0.69;
+    if (tomY === 'auto') tomY = cardsY + 82 * 2 * s + 8 * s;
+  }
+  var cy0 = L.cy0, cyb = L.cyb;
+  if (mode === 'p_tall') cy0 = tomY + tmLines.length * 17 * s + 56 * s;
+  if (mode === 'p_quad') cy0 = Math.max(cy0, heroBottom + 40 * s);
+  var cx0 = L.cx0, cx1 = L.cx1 || W, padBot = L.padBot || 0;
+  function X(idx) { return cx0 + (idx - a) / Math.max(1, (b - 1 - a)) * (cx1 - cx0); }
+  function Y(v) { return cyb - padBot - (v - vmin) / (vmax - vmin) * (cyb - padBot - cy0); }
+
+  g.push('<defs>' + (bit1 ? '<pattern id="gf' + uid + '" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="4" fill="#fff"/><rect x="0" y="0" width="1.6" height="1.6" fill="#000"/><rect x="2" y="2" width="1.6" height="1.6" fill="#000"/></pattern>' : '<linearGradient id="gf' + uid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.34"/><stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>') +
+    '<pattern id="hp' + uid + '" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="5" height="5" fill="#fff"/><rect width="2" height="5" fill="#000"/></pattern></defs>');
+
+  // ---- curve (extremes + now are always real vertices of the path) ----
+  var step = Math.max(1, Math.round((b - a) / 60));
+  var idxs = [];
+  for (i = a; i < b; i += step) idxs.push(i);
+  idxs.push(b - 1, iMin, iMax);
+  var nowIn = curIdx >= a && curIdx < b;
+  if (nowIn) idxs.push(curIdx);
+  idxs.sort(function (p, q) { return p - q; });
+  idxs = idxs.filter(function (v, k) { return k === 0 || v !== idxs[k - 1]; });
+  var pts = idxs.map(function (ix) { return [X(ix), Y(sm[ix])]; });
+  var past = [], fut = [];
+  idxs.forEach(function (ix, k) { if (ix <= curIdx) past.push(pts[k]); if (ix >= curIdx) fut.push(pts[k]); });
+  var nx = nowIn ? X(curIdx) : cx0, ny = nowIn ? Y(sm[curIdx]) : Y(sm[a]);
+  if (fut.length > 1) {
+    g.push('<path d="' + smoothPath(fut) + ' L' + r1(fut[fut.length - 1][0]) + ' ' + r1(cyb) + ' L' + r1(fut[0][0]) + ' ' + r1(cyb) + ' Z" fill="url(#gf' + uid + ')"/>');
+    g.push('<path d="' + smoothPath(fut) + '" fill="none" stroke="' + INK + '" stroke-width="' + r1(3.5 * s) + '" stroke-linecap="round" stroke-linejoin="round"/>');
+  }
+  if (past.length > 1) g.push('<path d="' + smoothPath(past) + '" fill="none" stroke="' + (bit1 ? '#000' : '#9a9a9a') + '" stroke-width="' + r1((bit1 ? 2 : 2.5) * s) + '" stroke-linecap="round" stroke-linejoin="round"' + (bit1 ? ' stroke-dasharray="' + r1(2 * s) + ' ' + r1(5 * s) + '"' : '') + '/>');
+  if (todayCount > a && todayCount < b && mode !== 'quad' && mode !== 'p_quad') {
+    var mx = X(todayCount) - (X(todayCount) - X(todayCount - 1)) / 2;
+    g.push('<line x1="' + r1(mx) + '" y1="' + r1(cy0 - 4 * s) + '" x2="' + r1(mx) + '" y2="' + r1(cyb) + '" stroke="' + (bit1 ? '#000' : '#8a8a8a') + '" stroke-width="' + r1(1.3 * s) + '" stroke-dasharray="' + r1(4 * s) + ' ' + r1(4 * s) + '"/>');
+  }
+  if (L.line) g.push('<line x1="' + r1(cx0) + '" y1="' + r1(cyb) + '" x2="' + r1(cx1) + '" y2="' + r1(cyb) + '" stroke="' + (bit1 ? '#000' : '#cfcfcf') + '" stroke-width="' + r1(1.5 * s) + '"/>');
+
+  // ---- window bars ----
+  var pick = out.best && out.best.pick, worst = out.worst;
+  function winBar(w, hatched) {
+    if (!w || w.start_index === undefined) return;
+    var x1 = X(Math.max(a, w.start_index)), x2 = X(Math.min(b - 1, w.start_index + w.length));
+    if (x2 <= x1) return;
+    var h = 8 * s, y = cyb + 8 * s;
+    g.push('<rect x="' + r1(x1) + '" y="' + r1(y) + '" width="' + r1(x2 - x1) + '" height="' + r1(h) + '" rx="' + r1(h / 2) + '" fill="' + (hatched ? 'url(#hp' + uid + ')' : INK) + '"' + (hatched ? ' stroke="' + INK + '" stroke-width="' + r1(1.6 * s) + '"' : '') + '/>');
+  }
+  if (L.bars) { winBar(pick, false); winBar(worst, true); }
+
+  // ---- peak / valley balloons ----
+  function balloon(ix, above) {
+    var x = X(ix), y = Y(sm[ix]);
+    var lab = (euro ? out.sym : '') + (all[ix].total * (euro ? 1 : 100)).toFixed(euro ? 3 : 1).replace('.', out.lang === 'en' ? '.' : ',') + (euro ? '' : ' ' + out.unit_label);
+    var bw = (lab.length * 7.6 + 18) * s, bh = 21 * s, tip = 6 * s, pw = 5.5 * s, rr = 7 * s, dotR = 4.5 * s, gap = dotR + 3 * s;
+    var bx = Math.min(Math.max(x - bw / 2, Math.min(m * 0.6, x - rr - pw - 2 * s)), Math.max(W - m * 0.6 - bw, x + rr + pw + 2 * s - bw));
+    var px = Math.min(Math.max(x, bx + rr + pw), bx + bw - rr - pw);
+    var by = above ? y - gap - tip - bh : y + gap + tip;
+    var d;
+    if (above) {
+      d = 'M' + r1(bx + rr) + ' ' + r1(by) + ' H' + r1(bx + bw - rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + bw) + ' ' + r1(by + rr) + ' V' + r1(by + bh - rr) +
+        ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + bw - rr) + ' ' + r1(by + bh) + ' H' + r1(px + pw) + ' L' + r1(x) + ' ' + r1(by + bh + tip) + ' L' + r1(px - pw) + ' ' + r1(by + bh) +
+        ' H' + r1(bx + rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx) + ' ' + r1(by + bh - rr) + ' V' + r1(by + rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + rr) + ' ' + r1(by) + ' Z';
+    } else {
+      d = 'M' + r1(bx + rr) + ' ' + r1(by) + ' H' + r1(px - pw) + ' L' + r1(x) + ' ' + r1(by - tip) + ' L' + r1(px + pw) + ' ' + r1(by) + ' H' + r1(bx + bw - rr) +
+        ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + bw) + ' ' + r1(by + rr) + ' V' + r1(by + bh - rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + bw - rr) + ' ' + r1(by + bh) +
+        ' H' + r1(bx + rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx) + ' ' + r1(by + bh - rr) + ' V' + r1(by + rr) + ' A' + r1(rr) + ' ' + r1(rr) + ' 0 0 1 ' + r1(bx + rr) + ' ' + r1(by) + ' Z';
+    }
+    g.push('<path d="' + d + '" fill="#fff" stroke="' + INK + '" stroke-width="' + r1(1.6 * s) + '" stroke-linejoin="round"/>');
+    g.push('<circle cx="' + r1(x) + '" cy="' + r1(y) + '" r="' + r1(dotR) + '" fill="' + INK + '" stroke="#fff" stroke-width="' + r1(2 * s) + '"/>');
+    txt(bx + bw / 2, by + bh * 0.7, 12.5 * s, esc(lab), { anchor: 'middle', w: 700 });
+  }
+  if (L.balloons) { balloon(iMax, true); balloon(iMin, false); }
+
+  // ---- hour labels ----
+  if (L.axis) {
+    var ay = cyb + 32 * s;
+    for (i = a; i < b; i++) {
+      var hh = parseInt(all[i].startsAt.slice(11, 13), 10);
+      if (all[i].startsAt.slice(14, 16) !== '00' || hh % 6 !== 0) continue;
+      var lo = Math.max(m, cx0), hi = Math.min(W - m, cx1);
+      var x = X(i), anc = x < lo + 14 * s ? 'start' : (x > hi - 14 * s ? 'end' : 'middle');
+      var lx = anc === 'start' ? Math.max(x, lo) : (anc === 'end' ? Math.min(x, hi) : x);
+      txt(lx, ay, 13 * s, hh === 0 && i >= todayCount ? esc(T.tmrw) : all[i].startsAt.slice(11, 16), { anchor: anc, fill: MUTE });
+    }
   }
 
-  .tibber-plugin.bg-gradient--early {
-    background: linear-gradient(0deg,rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+  // ---- now marker ----
+  if (nowIn) {
+    if (mode !== 'quad' && mode !== 'p_quad') g.push('<line x1="' + r1(nx) + '" y1="' + r1(ny) + '" x2="' + r1(nx) + '" y2="' + r1(cyb) + '" stroke="' + INK + '" stroke-width="' + r1(1.5 * s) + '"/>');
+    g.push('<circle cx="' + r1(nx) + '" cy="' + r1(ny) + '" r="' + r1(8 * s) + '" fill="' + INK + '" stroke="#fff" stroke-width="' + r1(3.5 * s) + '"/>');
   }
-</style>
 
-<link rel="stylesheet" href="https://cdn.hugeicons.com/font/hgi-stroke-rounded.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  // ---- header ----
+  var hy = L.hy;
+  g.push('<path transform="translate(' + r1(m) + ' ' + r1(hy - 12 * s) + ') scale(' + r1(0.6 * s) + ')" d="M13.5 2 L4.5 13.5 H11 L10 22 L19.5 10 H13 Z" fill="none" stroke="' + INK + '" stroke-width="2.2" stroke-linejoin="round"/>');
+  txt(m + 21 * s, hy, 13 * s, 'Tibber', { w: 700 });
+  if (L.time) {
+    var off = all[curIdx].startsAt.slice(23), sg = off[0] === '-' ? -1 : 1;
+    var offMin = sg * (parseInt(off.slice(1, 3), 10) * 60 + parseInt(off.slice(4, 6), 10));
+    var ln = new Date(Date.now() + offMin * 60000);
+    txt(W - m, hy, 13 * s, ('0' + ln.getUTCHours()).slice(-2) + ':' + ('0' + ln.getUTCMinutes()).slice(-2), { anchor: 'end', w: 700 });
+  }
+
+  // ---- hero ----
+  if (!L.noNow) cap(m, lblY, T.now);
+  g.push('<text x="' + r1(m) + '" y="' + r1(prY) + '" fill="' + INK + '">' +
+    (euro ? '<tspan font-size="' + r1(big * 0.36) + '" font-weight="600">' + esc(out.sym) + '</tspan><tspan font-size="' + r1(big) + '" font-weight="700" dx="' + r1(3 * s) + '">' + esc(P.now) + '</tspan>'
+          : '<tspan font-size="' + r1(big) + '" font-weight="700">' + esc(P.now) + '</tspan>') +
+    '<tspan font-size="' + r1(15 * s) + '" font-weight="500" dx="' + r1(6 * s) + '" fill="' + MUTE + '">' + (euro ? '/kWh' : esc(out.unit_label) + '/kWh') + '</tspan></text>');
+  var dark = P.level_idx >= 3;
+  g.push('<rect x="' + r1(m) + '" y="' + r1(pillY) + '" width="' + r1(pillW) + '" height="' + r1(pillH) + '" rx="' + r1(pillH / 2) + '" fill="' + (dark ? INK : '#fff') + '" stroke="' + INK + '" stroke-width="' + r1(2 * s) + '"/>');
+  txt(m + pillW / 2, pillY + pillH * 0.69, 13.5 * s, esc(lvName), { anchor: 'middle', w: 700, fill: dark ? '#fff' : INK });
+  function dur(min) { return min < 60 ? min + ' min' : Math.round(min / 60) + T.hs.toLowerCase(); }
+  var verdict = out.now_cheap ? T.v_cheap
+    : out.next_cheap ? T.v_in2.replace('%s', dur(out.next_cheap.in_min))
+    : (pick && !pick.is_now && P.level_idx >= 2) ? T.v_in.replace('%s', dur(pick.starts_in_min))
+    : (P.level_idx >= 3 ? T.v_high : T.v_ok);
+  var vx = L.verdict === 'inline' ? m + pillW + 14 * s : m;
+  var vAvail = L.verdict === 'inline' ? (L.vAvail - vx) : (L.vAvail || (W - 2 * m));
+  var vSize = (L.verdict === 'inline' ? 14 : 15) * s, vEst = verdict.length * 7.4 * (vSize / (14 * s)) * s;
+  if (vEst > vAvail) vSize = Math.max(11 * s, vSize * vAvail / vEst);
+  txt(vx, verdictY, vSize, esc(verdict), { fill: L.verdict === 'inline' ? MUTE : '#333' });
+
+  // ---- cards ----
+  if (L.cards) {
+    L.cards.forEach(function (c) {
+      var y = cardsY + (c.dy || 0), w = c.kind === 'best' ? pick : worst;
+      if (!w) return;
+      var label = (c.kind === 'best' ? T.cheapest : T.priciest) + ' ' + w.hours + T.hs;
+      var sub = T.avgp.replace('%s', pf(w.avg));
+      cap(c.x, y, label);
+      g.push('<rect x="' + r1(c.x + c.inner - 24 * s) + '" y="' + r1(y - 10 * s) + '" width="' + r1(24 * s) + '" height="' + r1(8 * s) + '" rx="' + r1(4 * s) + '" fill="' + (c.kind === 'best' ? INK : 'url(#hp' + uid + ')') + '"' + (c.kind === 'best' ? '' : ' stroke="' + INK + '" stroke-width="' + r1(1.6 * s) + '"') + '/>');
+      txt(c.x, y + 30 * s, 22 * s, w.start + ' - ' + w.end, { w: 700 });
+      txt(c.x, y + 52 * s, 14 * s, esc(sub), { fill: MUTE });
+    });
+  }
+  if (L.tomorrow) tmLines.forEach(function (ln2, k) { txt(L.tomorrow.x, tomY + k * 17 * s, 13 * s, esc(ln2), { fill: MUTE }); });
+  if (L.winText && pick) {
+    txt(L.winText.x, L.winText.y, 13 * s, esc(T.cheapest) + ' ' + pick.hours + T.hs + '   ' + pick.start + ' - ' + pick.end + '   ' + esc(pf(pick.avg)), { w: 600 });
+  }
+
+  // ---- stats ----
+  var IC = {
+    bolt: '<path d="M13.5 2 L4.5 13.5 H11 L10 22 L19.5 10 H13 Z"/>',
+    coin: '<circle cx="12" cy="12" r="9"/><path d="M15 9.2a4 4 0 1 0 0 5.6M7.5 11h6M7.5 13.5h6"/>',
+    cal: '<rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+    sun: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>',
+    tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.3"/>'
+  };
+  function stat(x, ly, label, value, unit, icon) {
+    g.push('<g transform="translate(' + r1(x) + ' ' + r1(ly - 12 * s) + ') scale(' + r1(0.66 * s) + ')" fill="none" stroke="' + MUTE + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + icon + '</g>');
+    cap(x + 22 * s, ly, label);
+    g.push('<text x="' + r1(x) + '" y="' + r1(ly + 30 * s) + '" font-size="' + r1(26 * s) + '" font-weight="700">' + esc(value) + (unit ? '<tspan font-size="' + r1(14 * s) + '" font-weight="500" dx="' + r1(4 * s) + '" fill="' + MUTE + '">' + esc(unit) + '</tspan>' : '') + '</text>');
+  }
+  var hasSolar = sol.has && parseFloat(String(sol.month_kwh).replace(',', '.')) > 0;
+  if (L.hair) g.push('<line x1="' + r1(m) + '" y1="' + r1(L.hair) + '" x2="' + r1(W - m) + '" y2="' + r1(L.hair) + '" stroke="' + (bit1 ? '#000' : '#cfcfcf') + '" stroke-width="' + r1(1.5 * s) + '"/>');
+  if (L.stats) L.stats.forEach(function (st) {
+    var ly = L.statsY[st.row || 0];
+    if (st.k === 'usage') stat(st.x, ly, T.usage, use.today_kwh, 'kWh', IC.bolt);
+    else if (st.k === 'cost') stat(st.x, ly, T.cost, money(use.today_cost), '', IC.coin);
+    else if (st.k === 'month') stat(st.x, ly, T.month, money(use.month_cost), '', IC.cal);
+    else if (st.k === 'solar') { if (hasSolar) stat(st.x, ly, T.solar, sol.today_kwh, 'kWh', IC.sun); else stat(st.x, ly, T.paid, use.paid_per_kwh, out.unit_label, IC.tag); }
+    else if (st.k === 'cheap' && pick) {
+      cap(st.x, ly, T.cheapest + ' ' + pick.hours + T.hs);
+      g.push('<text x="' + r1(st.x) + '" y="' + r1(ly + 30 * s) + '" font-size="' + r1(24 * s) + '" font-weight="700">' + esc(pick.start + ' - ' + pick.end) + '</text>');
+    }
+  });
+  return '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid meet" font-family="Inter, Helvetica, Arial, sans-serif">' + g.join('') + '</svg>';
+}
+
+var TIBBER = {
+  price: {{ price | json }}, use: {{ use | json }}, solar: {{ solar | json }}, tomorrow: {{ tomorrow | json }},
+  best: {{ best | json }}, worst: {{ worst | json }}, next_cheap: {{ next_cheap | json }}, now_cheap: {{ now_cheap | json }},
+  home: {{ home | json }}, sym: {{ sym | json }}, unit_label: {{ unit_label | json }}, lang: {{ lang | json }},
+  has_prices: {{ has_prices | json }}, error: {{ error | json }}, slots: {{ slots | json }}, cur: {{ cur_index | default: 0 }}, today_count: {{ today_count | default: 0 }}
+};
+
+var ERR = {
+  en: { auth: ['Check your Tibber token', 'Open the plugin settings and paste a valid API token from developer.tibber.com.'], noprice: ['No prices yet', 'Tibber has no prices for this home. Is your contract active?'] },
+  nl: { auth: ['Controleer je Tibber-token', 'Open de plugin-instellingen en plak een geldige API-token van developer.tibber.com.'], noprice: ['Nog geen prijzen', 'Tibber heeft geen prijzen voor deze woning. Is je contract actief?'] },
+  de: { auth: ['Tibber-Token prüfen', 'Öffne die Plugin-Einstellungen und füge ein gültiges API-Token von developer.tibber.com ein.'], noprice: ['Noch keine Preise', 'Tibber hat keine Preise für dieses Zuhause. Ist dein Vertrag aktiv?'] },
+  sv: { auth: ['Kontrollera din Tibber-token', 'Öppna pluginens inställningar och klistra in en giltig API-token från developer.tibber.com.'], noprice: ['Inga priser ännu', 'Tibber har inga priser för det här hemmet. Är ditt avtal aktivt?'] },
+  no: { auth: ['Sjekk Tibber-tokenet ditt', 'Åpne innstillingene for pluginen og lim inn et gyldig API-token fra developer.tibber.com.'], noprice: ['Ingen priser ennå', 'Tibber har ingen priser for dette hjemmet. Er avtalen din aktiv?'] }
+};
+function tibberError(root) {
+  var E = ERR[TIBBER.lang] || ERR.en;
+  var msg = TIBBER.error === 'noprice' ? E.noprice : E.auth;
+  var scr = (root.closest && root.closest('.screen')) || document.body;
+  var k = scr.classList.contains('screen--lg') ? 1.3 : 1;
+  root.innerHTML = '<div style="position:relative;width:100%;height:100%;font-family:Inter,Helvetica,Arial,sans-serif;color:#000">' +
+    '<div style="position:absolute;left:' + 24 * k + 'px;top:' + 22 * k + 'px;font-size:' + 13 * k + 'px;font-weight:700">Tibber</div>' +
+    '<div style="position:absolute;left:' + 24 * k + 'px;right:' + 24 * k + 'px;top:50%;transform:translateY(-50%);text-align:center">' +
+    '<div style="font-size:' + 22 * k + 'px;font-weight:700;margin-bottom:' + 8 * k + 'px">' + msg[0] + '</div>' +
+    '<div style="font-size:' + 14 * k + 'px;color:#444;line-height:1.35">' + msg[1] + '</div></div></div>';
+}
+
+function tibberDraw(root, mode) {
+  if (!TIBBER.has_prices || !TIBBER.slots || !TIBBER.slots.length) { tibberError(root); return; }
+  var host = (root.closest && root.closest('.view')) || root.parentElement || root;
+  var rc = host.getBoundingClientRect();
+  var scr = (root.closest && root.closest('.screen')) || document.body;
+  var cl = scr.classList;
+  var portrait = cl.contains('screen--portrait');
+  var W = Math.round(rc.width), H = Math.round(rc.height);
+  var big = cl.contains('screen--lg') || Math.max(W, H) >= 1000;
+  var bit1 = cl.contains('screen--1bit');
+  var s = big ? 1.3 : 1;
+  if (W < 150 || H < 100) {
+    var sw = big ? 1040 : 800, sh = big ? 780 : 480;
+    if (portrait) { var t0 = sw; sw = sh; sh = t0; }
+    var R = { full: [sw, sh], half_h: [sw, sh / 2], half_v: [sw / 2, sh], quad: [sw / 2, sh / 2] }[mode];
+    W = Math.round(R[0]); H = Math.round(R[1]);
+  }
+  root.style.width = W + 'px'; root.style.height = H + 'px';
+  var m2 = portrait ? { full: 'p_full', half_h: 'p_mid', half_v: 'p_tall', quad: 'p_quad' }[mode] : mode;
+  var T = TXT[TIBBER.lang] || TXT.en;
+  root.innerHTML = drawScreen(m2, W, H, s, 'tb' + mode, TIBBER, TIBBER.slots, TIBBER.cur, TIBBER.today_count, T, bit1);
+}
+</script>
